@@ -1,10 +1,10 @@
 # --- CONFIGURATION ---
-:local cNs {"cloudflared-tunnel-1"; "cloudflared-tunnel-2"}
+:local cNs {"cloudflared-tunnel-1"; "cloudflared-tunnel-2"; "cloudflared-tunnel-3"}
 :local img "cloudflare/cloudflared:latest"
-:local vInt "veth1[cloudflared]"
+:local vInt "veth1"
 :local eL "cloudflared"
 :local dP "usb1/container"
-:local cmd "tunnel run"
+:local cmd "tunnel --no-autoupdate run"
 
 :put "--- Phase 1: Global Health Check ---"
 :local repairList [:toarray ""]
@@ -29,12 +29,10 @@
     :if ([:len $n] > 0) do={
         :put ("Current Target: " . $n)
         
-        # 1. REMOVE (If it exists)
+        # 1. REMOVE
         :if ([:len [/container find name=$n]] > 0) do={
             :put "Stopping..."
             :do { /container stop [find name=$n] } on-error={}
-            
-            # Wait for S (Stopped) flag
             :while ([/container print count-only where name=$n stopped] = 0) do={ :delay 500ms }
 
             :put "Removing..."
@@ -47,9 +45,9 @@
             }
         }
 
-        # 2. CREATE
+        # 2. CREATE (Start-on-boot=yes for AX3 power cycles)
         :put "Adding new container..."
-        /container add name=$n remote-image=$img interface=$vInt envlist=$eL root-dir=($dP . "/" . $n) cmd=$cmd
+        /container add name=$n remote-image=$img interface=$vInt envlist=$eL root-dir=($dP . "/" . $n) cmd=$cmd start-on-boot=yes
 
         # 3. WAIT FOR EXTRACTION (E Flag)
         :put "Extracting (E flag)..."
@@ -59,7 +57,7 @@
         :put "Starting..."
         /container start [find name=$n]
         
-        # Script stops here until R (Running) flag is detected
+        # Script blocks here until this tunnel is fully Running
         :while ([/container print count-only where name=$n running] = 0) do={ :delay 1s }
 
         :put ("SUCCESS: " . $n . " is healthy and running.")
@@ -67,4 +65,4 @@
     }
 }
 
-:put "--- All Tasks Finished ---"
+:put "--- All 3 Tunnels Updated & Verified ---"

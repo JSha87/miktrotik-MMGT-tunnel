@@ -1,0 +1,1 @@
+/container add name=cloudflared-tunnel-3 remote-image=cloudflare/cloudflared:latest interface=veth1 root-dir=usb1/container/cloudflared-tunnel-3 start-on-boot=yes cmd="tunnel --no-autoupdate run --token CHANGEME"
