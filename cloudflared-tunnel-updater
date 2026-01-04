@@ -1,0 +1,70 @@
+# --- CONFIGURATION ---
+:local cNs {"cloudflared-tunnel-1"; "cloudflared-tunnel-2"}
+:local img "cloudflare/cloudflared:latest"
+:local vInt "veth1[cloudflared]"
+:local eL "cloudflared"
+:local dP "usb1/container"
+:local cmd "tunnel run"
+
+:put "--- Phase 1: Global Health Check ---"
+:local repairList [:toarray ""]
+:local updateList [:toarray ""]
+
+:foreach n in=$cNs do={
+    :local exists ([:len [/container find name=$n]] > 0)
+    :local isRunning ([/container print count-only where name=$n running] > 0)
+    
+    :if (!$exists || !$isRunning) do={
+        :set repairList ($repairList, $n)
+    } else={
+        :set updateList ($updateList, $n)
+    }
+}
+
+:local masterList ($repairList, $updateList)
+:put "Queue order: Repairs first, then Updates."
+
+# --- Phase 2: Processing ---
+:foreach n in=$masterList do={
+    :if ([:len $n] > 0) do={
+        :put ("Current Target: " . $n)
+        
+        # 1. REMOVE (If it exists)
+        :if ([:len [/container find name=$n]] > 0) do={
+            :put "Stopping..."
+            :do { /container stop [find name=$n] } on-error={}
+            
+            # Wait for S (Stopped) flag
+            :while ([/container print count-only where name=$n stopped] = 0) do={ :delay 500ms }
+
+            :put "Removing..."
+            :local remSuccess false
+            :while ($remSuccess = false) do={
+                :do { 
+                    /container remove [find name=$n]
+                    :set remSuccess true
+                } on-error={ :delay 1s }
+            }
+        }
+
+        # 2. CREATE
+        :put "Adding new container..."
+        /container add name=$n remote-image=$img interface=$vInt envlist=$eL root-dir=($dP . "/" . $n) cmd=$cmd
+
+        # 3. WAIT FOR EXTRACTION (E Flag)
+        :put "Extracting (E flag)..."
+        :while ([/container print count-only where name=$n extracting] > 0) do={ :delay 1s }
+
+        # 4. START & LOCK (R Flag)
+        :put "Starting..."
+        /container start [find name=$n]
+        
+        # Script stops here until R (Running) flag is detected
+        :while ([/container print count-only where name=$n running] = 0) do={ :delay 1s }
+
+        :put ("SUCCESS: " . $n . " is healthy and running.")
+        :put "----------------------------"
+    }
+}
+
+:put "--- All Tasks Finished ---"
