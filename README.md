@@ -6,9 +6,21 @@
 ### https://unixhost.pro/blog/2022/11/setup-docker-container-on-routeros-mikrotik/
 ## 3. Container "envlist" with key TOKEN_TOKEN defined by Cloudflared Token
 ## 4. Paste script into System/scripts
+5. 
 ## 5. Create Scheduled Task in System/Scheduler to trigger script
-
-# For updating without too much downtime
+ie:
+```
+Name: Containers fix on boot
+Start Time: startup
+OnEvent: /system/script/run cloudflared-updater
+```
+```
+Name: update-cloudflared
+Start Time: 03:00:00
+Interval: 1d 00:00:00
+OnEvent: /system/script/run cloudflared-updater
+```
+### For updating manually without too much downtime
 
 ## 1. Check and download OS update
 ```
