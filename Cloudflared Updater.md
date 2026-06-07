@@ -113,7 +113,6 @@ add key=TUNNEL_TOKEN list=cloudflared value="YOUR_ACTUAL_TOKEN_HERE"
 ```
 ---
 # Schedulers
-```
 ## Cloudflared Daily Updater
 ```
 /system scheduler add name="update-cloudflared" on-event="/system/script/run cloudflared-updater" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-date=2025-10-19 start-time=03:00:00 interval=1d
