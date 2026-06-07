@@ -1,11 +1,9 @@
 # Pre-Requisites
-## Ensure required interface, vlan, and usb storage are correctly configured and make cloudflare token available as environment variable.
-
+Ensure required interface(veth), vlan, and usb storage are correctly configured and make cloudflare token available as environment variable.
 ```
 /container envs
 add key=TUNNEL_TOKEN list=cloudflared value="YOUR_ACTUAL_TOKEN_HERE"
 ```
-
 ---
 # Cloudflared Updater Script
 ```
