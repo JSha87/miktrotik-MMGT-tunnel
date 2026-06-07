@@ -30,11 +30,10 @@
 }
 ```
 ---
-# Firmware Update Check on Boot
+# Scheduled Triggers
 ```
 /system scheduler add name="Schedule-FirmwareUpdate" on-event="/system/script/run AutoUpdate-Firmware" policy=reboot,read,write,policy,test,sensitive start-time=startup
 ```
-# OS Update Weekly Schedule
 ```
 /system scheduler add name="Schedule-OSUpdate" on-event="/system/script/run AutoUpdate-OS" policy=reboot,read,write,policy,test,sensitive start-date=jun/14/2026 start-time=03:00:00 interval=1w
 ```
