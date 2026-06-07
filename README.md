@@ -20,7 +20,7 @@ Start Time: 03:00:00
 Interval: 1d 00:00:00
 OnEvent: /system/script/run cloudflared-updater
 ```
-### For updating manually without too much downtime
+# For updating manually without too much downtime
 
 ## 1. Check and download OS update
 ```
